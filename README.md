@@ -1,15 +1,8 @@
 # ByteEats Food Preparation ELT Pipeline
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.105.0-green.svg)](https://fastapi.tiangolo.com/)
-[![OpenCV](https://img.shields.io/badge/OpenCV-4.8.1-red.svg)](https://opencv.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 ## Overview
 
 ByteEats is an end-to-end ELT (Extract, Load, Transform) pipeline for automated food preparation. The system processes videos of food preparation, extracts meaningful features, generates vector embeddings for similarity search and anomaly detection, and provides quality assurance through image comparison.
-
-![ByteEats Pipeline](docs/images/pipeline_diagram.png)
 
 ## Pipeline Components
 
