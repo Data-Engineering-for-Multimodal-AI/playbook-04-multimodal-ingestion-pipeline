@@ -1,8 +1,25 @@
-# ByteEats Food Preparation ELT Pipeline
+# ByteEats Core Ops Pipeline
 
 ## Overview
 
 ByteEats is an end-to-end ELT (Extract, Load, Transform) pipeline for automated food preparation. The system processes videos of food preparation, extracts meaningful features, generates vector embeddings for similarity search and anomaly detection, and provides quality assurance through image comparison.
+
+### Pipeline Diagram
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Order     │    │   Robot     │    │   Video     │    │   Quality   │
+│  Ingestion  │─→  │ Preparation │─→  │  Feature    │─→  │  Assurance  │
+│             │    │             │    │ Extraction  │    │             │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+                                                               │
+                                                               ▼
+                                      ┌─────────────┐    ┌─────────────┐
+                                      │ Similarity  │    │   Vector    │
+                                      │   Search    │←─  │ Embeddings  │
+                                      │             │    │             │
+                                      └─────────────┘    └─────────────┘
+```
 
 ## Pipeline Components
 
@@ -50,11 +67,16 @@ ByteEats/
 
 ### Prerequisites
 
-- Python 3.9+
-- OpenCV
-- scikit-learn
-- FastAPI
-- Other dependencies in requirements.txt
+- **Python 3.9+**: Core programming language used for all components
+- **OpenCV 4.8+**: Computer vision library for video and image processing
+- **NumPy**: Numerical computing library for array operations
+- **scikit-learn**: Machine learning library for vector embeddings
+- **FastAPI**: API framework for order ingestion
+- **Matplotlib**: Data visualization for analysis reports
+- **Pillow**: Image processing library for quality checking
+- **Pandas**: Data manipulation for feature extraction and analysis
+
+All dependencies are listed in `requirements.txt`.
 
 ### Setup
 
