@@ -18,8 +18,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import PCA
 
 # Configuration
-REFERENCE_IMAGES_DIR = "reference_images"
-SAMPLE_IMAGES_DIR = "sample_bowl_images"
+# Sample data ships in ByteEats/data, found relative to this file so the
+# script works from any folder. Outputs go to the current folder.
+DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
+REFERENCE_IMAGES_DIR = os.path.join(DATA_DIR, "reference_images")
+SAMPLE_IMAGES_DIR = os.path.join(DATA_DIR, "sample_bowls")
 RESULTS_DIR = "similarity_results"
 
 # Ensure directories exist
