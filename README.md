@@ -280,6 +280,8 @@ image-quality-checker - INFO - Quality report saved to qa_results/ORD1001_qualit
 
 The report's metrics (each scaled to 100): SSIM 31.17, ORB feature score 25.40, histogram correlation 0.70, MSE score 0.01. The pass threshold is 70%. The comparison image is `qa_results/ORD1001_comparison.jpg`.
 
+On Linux x86-64 (GitHub Actions, both Python versions) the score is 16.41%: the video frame decodes slightly differently there (MSE 15,105 against 15,125), which moves the ORB feature score to 26.20 and the histogram correlation to 1.30. The check fails either way.
+
 **Step 7, embeddings:**
 
 ```
