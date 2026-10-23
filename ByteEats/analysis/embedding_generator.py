@@ -245,7 +245,9 @@ class VideoEmbeddingGenerator:
             embeddings_array = np.array(embeddings)
             
             # Use t-SNE to reduce dimensionality to 2D
-            tsne = TSNE(n_components=2, random_state=42)
+            # t-SNE needs perplexity < number of samples (7 videos per order here)
+            tsne = TSNE(n_components=2, random_state=42,
+                        perplexity=min(30.0, len(embeddings_array) - 1))
             embeddings_2d = tsne.fit_transform(embeddings_array)
             
             # Create plot
@@ -459,11 +461,13 @@ if __name__ == "__main__":
     if args.command == "generate":
         result = generate_embeddings(args.order_id)
         print(json.dumps(result, indent=2))
+        sys.exit(0 if result.get("success") else 1)
     elif args.command == "similar":
         results = find_similar_videos(args.video_path, args.top)
         print(json.dumps(results, indent=2))
     elif args.command == "anomalies":
         result = detect_anomalies(args.order_id, args.threshold)
         print(json.dumps(result, indent=2))
+        sys.exit(0 if result.get("success") else 1)
     else:
         parser.print_help() 

@@ -280,4 +280,6 @@ if __name__ == "__main__":
     order_id = sys.argv[1]
     menu_item = sys.argv[2]
     
-    check_order_quality(order_id, menu_item) 
+    result = check_order_quality(order_id, menu_item)
+    sys.exit(1 if "error" in result else 0)
+ 
