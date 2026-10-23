@@ -83,7 +83,7 @@ def test_order_api(tmp_path, monkeypatch):
     assert client.get("/api/orders/ORD1001").json()["menu_item"] == "Salmon Poke Bowl"
 
     created = client.post("/api/orders", json={
-        "restaurant_id": "PH001", "restaurant_name": "Poke House", "menu_item": "Miso Salmon Bowl",
+        "restaurant_id": "PH001", "restaurant_name": "Sample Poke Bar", "menu_item": "Miso Salmon Bowl",
         "items": [{"name": "Salmon", "quantity": 1}]}).json()
     saved = client.get(f"/api/orders/{created['order_id']}").json()
     assert saved["order_status"] == "received" and saved["items"][0]["name"] == "Salmon"

@@ -26,6 +26,7 @@ The printed version is tagged `first-edition`.
 - The quality checker and similarity demo read images from `ByteEats/data` (found relative to the script) instead of root copies of the same files.
 - `opencv-python` 4.8 → `opencv-python-headless` 5.0 (the code uses no window functions; the extracted features are identical). The other dependencies move to current versions; Python 3.12+.
 - `order.dict()` → `order.model_dump()` (Pydantic 2).
+- The sample order's restaurant is the fictional "Sample Poke Bar" (it named a real restaurant chain).
 - The README lists the pickup notification as its own step, documents the `similar` and `anomalies` commands, and marks the TensorFlow paths as optional and untested.
 
 ### Removed

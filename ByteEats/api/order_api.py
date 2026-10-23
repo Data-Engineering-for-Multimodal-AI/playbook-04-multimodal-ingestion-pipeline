@@ -70,7 +70,7 @@ async def process_sample_order(background_tasks: BackgroundTasks):
     sample_order = {
         "order_id": "ORD1001",
         "restaurant_id": "PH001",
-        "restaurant_name": "Poke House",
+        "restaurant_name": "Sample Poke Bar",
         "menu_item": "Salmon Poke Bowl",
         "order_placed_at": datetime.now().isoformat(),
         "order_status": "received",

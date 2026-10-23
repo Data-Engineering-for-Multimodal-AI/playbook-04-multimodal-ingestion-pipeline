@@ -193,6 +193,7 @@ Every command above was run from a fresh clone of this branch on 3.12. The extra
 | `setup.py`, `setup_github.sh`, empty files `#` and `On` | Present | Removed | `pyproject.toml` replaces `setup.py`; the GitHub helper set up a new repository under a placeholder account |
 | OpenCV | `opencv-python` 4.8 | `opencv-python-headless` 5.0 | OpenCV 5.0 was released in June 2026; the code uses no window functions, and the results are identical |
 | Pydantic | `order.dict()` | `order.model_dump()` | `.dict()` is deprecated in Pydantic 2 |
+| Sample order's restaurant | "Poke House" | "Sample Poke Bar" | The sample named a real restaurant chain; the playbook uses fictional businesses |
 | `docs/images/`, `tests/` in the project tree | Listed, but missing | `tests/` added; `docs/images/` removed from the tree | Accuracy |
 
 Details are in [CHANGELOG.md](CHANGELOG.md).
