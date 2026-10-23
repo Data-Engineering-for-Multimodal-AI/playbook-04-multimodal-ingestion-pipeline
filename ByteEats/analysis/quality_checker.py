@@ -23,7 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger("image-quality-checker")
 
 # Configuration
-REFERENCE_IMAGES_DIR = "reference_images"
+# Sample data ships in ByteEats/data, found relative to this file so the
+# script works from any folder. Outputs go to the current folder.
+DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
+REFERENCE_IMAGES_DIR = os.path.join(DATA_DIR, "reference_images")
 VIDEO_FEATURES_DIR = "video_features_enhanced"
 QA_RESULTS_DIR = "qa_results"
 
@@ -125,17 +128,20 @@ class ImageQualityChecker:
         C1 = (0.01 * 255) ** 2
         C2 = (0.03 * 255) ** 2
         
-        # Calculate mean, variance, and covariance
-        mu1 = cv2.GaussianBlur(gray1, (11, 11), 1.5)
-        mu2 = cv2.GaussianBlur(gray2, (11, 11), 1.5)
+        # Calculate mean, variance, and covariance in floating point
+        # (squaring and multiplying 8-bit pixels overflows)
+        f1 = gray1.astype(np.float64)
+        f2 = gray2.astype(np.float64)
+        mu1 = cv2.GaussianBlur(f1, (11, 11), 1.5)
+        mu2 = cv2.GaussianBlur(f2, (11, 11), 1.5)
         
         mu1_sq = mu1 ** 2
         mu2_sq = mu2 ** 2
         mu1_mu2 = mu1 * mu2
         
-        sigma1_sq = cv2.GaussianBlur(gray1 ** 2, (11, 11), 1.5) - mu1_sq
-        sigma2_sq = cv2.GaussianBlur(gray2 ** 2, (11, 11), 1.5) - mu2_sq
-        sigma12 = cv2.GaussianBlur(gray1 * gray2, (11, 11), 1.5) - mu1_mu2
+        sigma1_sq = cv2.GaussianBlur(f1 ** 2, (11, 11), 1.5) - mu1_sq
+        sigma2_sq = cv2.GaussianBlur(f2 ** 2, (11, 11), 1.5) - mu2_sq
+        sigma12 = cv2.GaussianBlur(f1 * f2, (11, 11), 1.5) - mu1_mu2
         
         # Calculate SSIM
         ssim_num = (2 * mu1_mu2 + C1) * (2 * sigma12 + C2)
@@ -277,4 +283,6 @@ if __name__ == "__main__":
     order_id = sys.argv[1]
     menu_item = sys.argv[2]
     
-    check_order_quality(order_id, menu_item) 
+    result = check_order_quality(order_id, menu_item)
+    sys.exit(1 if "error" in result else 0)
+ 

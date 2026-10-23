@@ -216,5 +216,22 @@ def poll_for_orders():
             logger.error(f"Error in main loop: {str(e)}")
             time.sleep(5)  # Longer sleep on error
 
+def process_pending_orders() -> bool:
+    """Process the orders waiting now, once, and report whether all succeeded"""
+    order_files = sorted(Path(ORDERS_DIR).glob("*.json"))
+    logger.info(f"Found {len(order_files)} orders to process")
+    results = [process_order(str(order_file)) for order_file in order_files]
+    return all(results)
+
 if __name__ == "__main__":
-    poll_for_orders() 
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="ByteEats robot trigger service")
+    parser.add_argument("--once", action="store_true",
+                        help="Process the orders waiting now and exit, instead of polling until Ctrl-C")
+    args = parser.parse_args()
+
+    if args.once:
+        sys.exit(0 if process_pending_orders() else 1)
+    poll_for_orders()
