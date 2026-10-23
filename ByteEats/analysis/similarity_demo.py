@@ -290,6 +290,7 @@ def find_most_similar(query_idx, similarity_matrix, labels):
         if idx == query_idx:
             continue  # Skip self
         results.append({
+            "index": int(idx),
             "label": labels[idx],
             "similarity": similarities[idx]
         })
@@ -379,7 +380,7 @@ def main():
         print(f"{i+1}. {result['label']} (similarity: {result['similarity']:.4f})")
     
     # Create visualization of similar images
-    similar_indices = [i for i in range(1, len(all_image_paths))][:3]
+    similar_indices = [r["index"] for r in similar_results[:3]]
     similar_images = [original_images[i] for i in similar_indices]
     similar_scores = [similarity_matrix[0][i] for i in similar_indices]
     similar_labels = [labels[i] for i in similar_indices]
