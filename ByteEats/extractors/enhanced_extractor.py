@@ -20,7 +20,10 @@ from datetime import datetime
 import argparse
 
 # Configuration - these are now moved to the top
-VIDEO_DIR = "sample-data/sample-prep-cycle-end-to-end/sample-prep-cycle"
+# Sample data ships in ByteEats/data, found relative to this file so the
+# script works from any folder. Outputs go to the current folder.
+DATA_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data"))
+VIDEO_DIR = os.path.join(DATA_DIR, "sample-videos")
 OUTPUT_DIR = "video_features_enhanced"
 ORDER_ID = "ORD1001"  # Using the existing order ID
 MENU_ITEM = "Salmon Poke Bowl"
@@ -615,6 +618,7 @@ def generate_summary_report(all_features, combined_file):
 
 def main():
     """Main entry point"""
+    global VIDEO_DIR, OUTPUT_DIR, ORDER_ID
     parser = argparse.ArgumentParser(description='Extract enhanced features from food preparation videos')
     parser.add_argument('--video-dir', default=VIDEO_DIR, help='Directory containing video files')
     parser.add_argument('--output-dir', default=OUTPUT_DIR, help='Directory to save output files')
@@ -622,8 +626,10 @@ def main():
     
     args = parser.parse_args()
     
-    # No need for global declarations here since we're just reading from them
-    # and the config variables are already defined at the top of the file
+    VIDEO_DIR = args.video_dir
+    OUTPUT_DIR = args.output_dir
+    ORDER_ID = args.order_id
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     
     # Process all videos
     process_all_videos()
