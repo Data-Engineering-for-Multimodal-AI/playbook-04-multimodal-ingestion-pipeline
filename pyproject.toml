@@ -1,0 +1,28 @@
+[project]
+name = "playbook-04-multimodal-ingestion-pipeline"
+version = "2026.10"
+description = "ByteEats: order API, robot trigger, video feature extraction, quality checks, embeddings and similarity search (Data Engineering for Multimodal AI, Chapter 4)"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "pydantic>=2.5",
+    "requests>=2.31",
+    "numpy>=1.26",
+    # Same library as opencv-python without the GUI functions, which the code doesn't use
+    "opencv-python-headless>=4.9",
+    "scikit-learn>=1.4",
+    "matplotlib>=3.8",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    # FastAPI's TestClient (Starlette 1.x) uses httpx2
+    "httpx2>=2.0",
+]
+
+[tool.uv]
+package = false
