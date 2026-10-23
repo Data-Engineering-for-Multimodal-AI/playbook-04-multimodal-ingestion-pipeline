@@ -25,3 +25,4 @@ jobs:
           uv venv --seed --python ${{ matrix.python-version }} /tmp/pipenv
           /tmp/pipenv/bin/python -m pip install -q -r requirements.txt
           /tmp/pipenv/bin/python ByteEats/run_pipeline.py
+          cat qa_results/ORD1001_quality_report.json

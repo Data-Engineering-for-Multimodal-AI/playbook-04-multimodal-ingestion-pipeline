@@ -144,8 +144,8 @@ def test_quality_check(pipeline):
     report = load(work / "qa_results" / "ORD1001_quality_report.json")
     # The packaging frame is a side view; the reference is a top-down photo, so the check fails
     assert report["quality_check_passed"] is False
-    assert round(report["similarity_metrics"]["overall_score"], 2) == 16.13
-    assert "Overall score: 16.13%" in results["qa"].stderr
+    # 16.13 on macOS arm64, 16.41 on Linux x86-64 (GitHub Actions)
+    assert 15.5 <= report["similarity_metrics"]["overall_score"] <= 17.0, report["similarity_metrics"]
     assert (work / "qa_results" / "ORD1001_comparison.jpg").exists()
 
 
