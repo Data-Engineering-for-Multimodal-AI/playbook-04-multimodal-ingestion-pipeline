@@ -142,10 +142,23 @@ def test_video_features(pipeline):
 def test_quality_check(pipeline):
     work, results = pipeline
     report = load(work / "qa_results" / "ORD1001_quality_report.json")
-    assert report["quality_check_passed"] is True
-    assert round(report["similarity_metrics"]["overall_score"], 2) == 72.30
-    assert "Overall score: 72.30%" in results["qa"].stderr
+    # The packaging frame is a side view; the reference is a top-down photo, so the check fails
+    assert report["quality_check_passed"] is False
+    assert round(report["similarity_metrics"]["overall_score"], 2) == 16.13
+    assert "Overall score: 16.13%" in results["qa"].stderr
     assert (work / "qa_results" / "ORD1001_comparison.jpg").exists()
+
+
+def test_quality_scores_identical_images_100():
+    # SSIM was computed on 8-bit pixels in the first edition and overflowed past 1.0
+    sys.path.insert(0, os.path.join(ROOT, "ByteEats", "analysis"))
+    import quality_checker
+    checker = quality_checker.ImageQualityChecker("unused", "unused", "unused")
+    ref = cv2.imread(os.path.join(DATA, "reference_images", "salmon_poke_bowl.jpg"))
+    same = checker.calculate_image_similarity(ref, ref.copy())
+    assert round(same["ssim"], 6) == 100 and round(same["overall_score"], 6) == 100
+    other = checker.calculate_image_similarity(ref, cv2.imread(os.path.join(DATA, "sample_bowls", "miso_salmon_bowl.jpg")))
+    assert -100 <= other["ssim"] <= 100
 
 
 def test_embeddings(pipeline):

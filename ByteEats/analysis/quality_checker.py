@@ -128,17 +128,20 @@ class ImageQualityChecker:
         C1 = (0.01 * 255) ** 2
         C2 = (0.03 * 255) ** 2
         
-        # Calculate mean, variance, and covariance
-        mu1 = cv2.GaussianBlur(gray1, (11, 11), 1.5)
-        mu2 = cv2.GaussianBlur(gray2, (11, 11), 1.5)
+        # Calculate mean, variance, and covariance in floating point
+        # (squaring and multiplying 8-bit pixels overflows)
+        f1 = gray1.astype(np.float64)
+        f2 = gray2.astype(np.float64)
+        mu1 = cv2.GaussianBlur(f1, (11, 11), 1.5)
+        mu2 = cv2.GaussianBlur(f2, (11, 11), 1.5)
         
         mu1_sq = mu1 ** 2
         mu2_sq = mu2 ** 2
         mu1_mu2 = mu1 * mu2
         
-        sigma1_sq = cv2.GaussianBlur(gray1 ** 2, (11, 11), 1.5) - mu1_sq
-        sigma2_sq = cv2.GaussianBlur(gray2 ** 2, (11, 11), 1.5) - mu2_sq
-        sigma12 = cv2.GaussianBlur(gray1 * gray2, (11, 11), 1.5) - mu1_mu2
+        sigma1_sq = cv2.GaussianBlur(f1 ** 2, (11, 11), 1.5) - mu1_sq
+        sigma2_sq = cv2.GaussianBlur(f2 ** 2, (11, 11), 1.5) - mu2_sq
+        sigma12 = cv2.GaussianBlur(f1 * f2, (11, 11), 1.5) - mu1_mu2
         
         # Calculate SSIM
         ssim_num = (2 * mu1_mu2 + C1) * (2 * sigma12 + C2)
