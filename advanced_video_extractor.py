@@ -22,7 +22,8 @@ import argparse
 import time
 
 # Configuration
-VIDEO_DIR = "sample-data/sample-prep-cycle-end-to-end/sample-prep-cycle"
+# Sample videos ship in ByteEats/data/sample-videos, found relative to this file
+VIDEO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ByteEats", "data", "sample-videos")
 OUTPUT_DIR = "video_features_advanced"
 ORDER_ID = "ORD1001"  # Using the existing order ID
 MENU_ITEM = "Salmon Poke Bowl"
@@ -493,6 +494,7 @@ def generate_summary_report(all_features, combined_file):
 
 def main():
     """Main entry point"""
+    global VIDEO_DIR, OUTPUT_DIR, ORDER_ID
     parser = argparse.ArgumentParser(description='Extract features from food preparation videos')
     parser.add_argument('--video-dir', default=VIDEO_DIR, help='Directory containing video files')
     parser.add_argument('--output-dir', default=OUTPUT_DIR, help='Directory to save output files')
@@ -500,7 +502,6 @@ def main():
     
     args = parser.parse_args()
     
-    global VIDEO_DIR, OUTPUT_DIR, ORDER_ID
     VIDEO_DIR = args.video_dir
     OUTPUT_DIR = args.output_dir
     ORDER_ID = args.order_id

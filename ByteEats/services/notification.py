@@ -193,6 +193,11 @@ class PickupNotificationService:
             logger.info(f"Order {order_id} is not ready for pickup yet: {ready_status.get('reason')}")
             return False
 
+def list_order_ids() -> List[str]:
+    """Order IDs in the processed orders directory (skipping the *_original.json copies)"""
+    order_files = sorted(Path(PROCESSED_ORDERS_DIR).glob("*.json"))
+    return [os.path.basename(f).split('.')[0] for f in order_files if not os.path.basename(f).endswith("_original.json")]
+
 def poll_for_completed_orders():
     """Poll for orders that have completed preparation"""
     logger.info("Starting ByteEats Pickup Notification Service")
@@ -202,8 +207,7 @@ def poll_for_completed_orders():
     while True:
         try:
             # Find all processed order files
-            order_files = list(Path(PROCESSED_ORDERS_DIR).glob("*.json"))
-            order_ids = [os.path.basename(f).split('.')[0] for f in order_files if not os.path.basename(f).endswith("_original.json")]
+            order_ids = list_order_ids()
             
             if order_ids:
                 logger.info(f"Checking {len(order_ids)} orders for pickup readiness")
@@ -222,4 +226,18 @@ def poll_for_completed_orders():
             time.sleep(5)  # Longer sleep on error
 
 if __name__ == "__main__":
-    poll_for_completed_orders() 
+    import argparse
+
+    parser = argparse.ArgumentParser(description="ByteEats pickup notification service")
+    parser.add_argument("--once", action="store_true",
+                        help="Check the processed orders once and exit, instead of polling until Ctrl-C")
+    args = parser.parse_args()
+
+    if args.once:
+        service = PickupNotificationService(VIDEO_FEATURES_DIR, PROCESSED_ORDERS_DIR)
+        order_ids = list_order_ids()
+        logger.info(f"Checking {len(order_ids)} orders for pickup readiness")
+        for order_id in order_ids:
+            service.process_order(order_id)
+    else:
+        poll_for_completed_orders()

@@ -115,3 +115,8 @@ robot_logs/
 processed_orders/
 orders/
 embedding_models/ 
+# Pipeline outputs not listed above, and local audit notes
+sample-data/
+video_features_advanced/
+.ruff_cache/
+AUDIT.md
