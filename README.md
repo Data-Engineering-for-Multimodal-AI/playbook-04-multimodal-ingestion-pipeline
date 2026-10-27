@@ -1,6 +1,7 @@
 # ByteEats Core Ops Pipeline
 
-**Chapter 4 playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026). Page numbers to be confirmed.
+**Chapter 4 playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026), pages 126–133 (Early Release page numbers; they may differ in the final print).
+Bonus content (not printed in the book): [playbook-04-bonus-multimodal-vector-similarity](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity).
 Book: https://oreil.ly/data-engineering-multimodal
 
 > Want the code exactly as printed? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the printed book](#differences-from-the-printed-book).
@@ -149,7 +150,7 @@ This runs every step in sequence and prints a summary. It starts the Order API i
 
 ### Other scripts
 
-- **Older script names.** The scripts at the repository root (`byteats_order_api.py`, `robot_trigger_service.py`, `pickup_notification_service.py`, `video_feature_extractor.py`, `enhanced_video_extractor.py`, `image_quality_checker.py`, `video_embedding_generator.py`, `image_similarity_demo.py`) run the matching `ByteEats/` module with the same arguments, so `python image_quality_checker.py ORD1001 "Salmon Poke Bowl"` still works.
+- **Script names printed in the book (pages 127–132).** The scripts at the repository root (`byteats_order_api.py`, `robot_trigger_service.py`, `pickup_notification_service.py`, `video_feature_extractor.py`, `enhanced_video_extractor.py`, `image_quality_checker.py`, `video_embedding_generator.py`, `image_similarity_demo.py`) run the matching `ByteEats/` module with the same arguments, so `python image_quality_checker.py ORD1001 "Salmon Poke Bowl"` still works.
 - **Basic extractor.** `python ByteEats/extractors/video_extractor.py` is the simpler extractor; it writes to `video_features/`.
 - **TensorFlow (optional, untested).** `advanced_video_extractor.py` detects objects with an SSD MobileNet v2 model from TensorFlow Hub, and `embedding_generator.py` uses the Universal Sentence Encoder if TensorFlow is installed. Neither is part of the tested pipeline, and `requirements.txt` doesn't install TensorFlow. To try them: `pip install tensorflow tensorflow-hub` (TensorFlow 2.21 supports Python 3.12 and 3.13). The `tfhub.dev` model links now resolve to Kaggle Models; Google states `hub.load()` still accepts them. Without TensorFlow, the embedding generator prints "TensorFlow not available. Using fallback embedding method." and uses the video features directly.
 
@@ -176,7 +177,9 @@ Every command above was run from a fresh clone of this branch on 3.12. The extra
 
 ## Differences from the printed book
 
-| What | Printed book | Now | Why |
+The "First edition" column is the code and README at the `first-edition` tag, which the book describes.
+
+| What | First edition | Now | Why |
 |---|---|---|---|
 | Clone URL and folder | `github.com/yourusername/ByteEats` | `playbook-04-multimodal-ingestion-pipeline` | The repository's actual location |
 | Python | 3.9+ | 3.12+ | Current dependencies. The 2023 pins didn't install on Python 3.13 |
@@ -185,7 +188,7 @@ Every command above was run from a fresh clone of this branch on 3.12. The extra
 | Quality check result | `PASSED`, overall score 72.30% | `FAILED`, overall score 16.13% | The SSIM term was computed on 8-bit pixels and overflowed to 1.92 (the valid range is -1 to 1), which supplied about 67 of the 72.30 points. Computed correctly, SSIM is 0.31: the last packaging frame is a side view and the reference is a top-down photo. Identical images still score 100% |
 | Robot trigger and notification services | Polled forever | `--once` processes what's waiting and exits; without it they poll as before | So the steps, the complete pipeline and the tests can finish |
 | `run_pipeline.py` | Hung at step 2; needed the API already running and `curl` | Finishes; starts and stops the API itself; exits 1 on failure | The services never exited, and it ran them in `ByteEats/` while the API wrote to `./orders` |
-| Pickup notification | Not in the step list | Step 5 | `run_pipeline.py` already ran it |
+| Pickup notification | Not in the README's step list (the book has it, page 129) | Step 5 | `run_pipeline.py` already ran it |
 | Embedding t-SNE plot | Never written (a warning in the log) | `video_embeddings/ORD1001_embeddings_viz.png` | t-SNE's default perplexity (30) must be below the number of videos (7) |
 | Similarity figure | Showed the first three images in the folder | Shows the three most similar | Bug |
 | Exit codes | 0 even when the input was missing | 1 when the quality check or embedding step can't run | So failures are visible |
@@ -209,7 +212,7 @@ None of it shows a real restaurant, kitchen, robot or person. [ByteEats/data/REA
 
 ## Expected output
 
-From `python ByteEats/run_pipeline.py` and the step-by-step commands in a fresh clone, 2026-10-23, macOS 26.5.1 (arm64), Python 3.12.15. Log timestamps are trimmed.
+From `python ByteEats/run_pipeline.py` and the step-by-step commands in a fresh clone, 2026-10-23, macOS 26.5.1 (arm64), Python 3.12.15. Log timestamps are trimmed. This is the output of this version; it may differ from the output printed in the book, and that's okay.
 
 **Step 3, robot trigger:**
 
@@ -345,7 +348,7 @@ Check the output directories for generated files and visualizations.
 │   ├── models/, utils/               # Empty packages
 │   └── run_pipeline.py               # Runs every step
 ├── advanced_video_extractor.py       # Optional TensorFlow object detection (untested)
-├── *.py                              # Older script names; each runs its ByteEats/ module
+├── *.py                              # Script names printed in the book; each runs its ByteEats/ module
 ├── tests/test_smoke.py               # make smoke
 ├── Makefile
 ├── pyproject.toml, uv.lock           # Dependencies (uv)
