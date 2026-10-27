@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.10.1 (2026-10-27)
+
+### Changed
+- README, after checking against the book (Early Release, pages 126–133): page numbers; the root
+  script names are the ones the book prints; the differences table's left column is the first
+  edition; a link to the bonus repository.
+
 ## 2026.10 (2026-10-23): 2026 maintenance update
 
 The printed version is tagged `first-edition`.
