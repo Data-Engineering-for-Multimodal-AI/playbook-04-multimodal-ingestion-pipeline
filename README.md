@@ -1,6 +1,6 @@
 # ByteEats Core Ops Pipeline
 
-**Chapter 4 playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026), pages 126–133 (Early Release page numbers; they may differ in the final print).
+**Chapter 4 playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026), pages 125–133.
 Bonus content (not printed in the book): [playbook-04-bonus-multimodal-vector-similarity](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity).
 Book: https://oreil.ly/data-engineering-multimodal
 
