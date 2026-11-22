@@ -1,0 +1,14 @@
+{
+  "name": "Playbook 04: food-prep ingestion pipeline",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0 && pip install --no-cache-dir uv==0.13.0",
+  "postCreateCommand": "make setup",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "ByteEats Order API" }
+  },
+  "customizations": {
+    "codespaces": { "openFiles": ["README.md"] },
+    "vscode": { "extensions": ["ms-python.python"] }
+  }
+}

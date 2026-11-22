@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC, so breakage in upstream packages shows up
 
 jobs:
   smoke:
@@ -20,9 +22,57 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.0
       - name: Smoke test
         run: make smoke
+      # README "Run it", steps 2 to 4, as written
+      - name: Run it, step 2 (make run)
+        run: |
+          set -o pipefail
+          make run 2>&1 | tee /tmp/run.txt
+          grep -q "Successfully completed 7/7 steps." /tmp/run.txt
+          grep -q "Order ORD1001 is ready for pickup!" /tmp/run.txt
+      - name: Run it, steps 3 and 4 (make serve, make order, robot trigger, make similar)
+        run: |
+          set -o pipefail
+          make serve > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf localhost:8000/ > /dev/null && break; sleep 1; done
+          make order ITEM="Miso Salmon Bowl" | tee /tmp/order.txt
+          grep -q "POST /api/orders -> HTTP 200" /tmp/order.txt
+          grep -q '"menu_item": "Miso Salmon Bowl"' /tmp/order.txt
+          uv run python ByteEats/services/robot_trigger.py --once 2>&1 | tee /tmp/robot.txt
+          grep -q "processed and moved to processed_orders/" /tmp/robot.txt
+          pkill -f "ByteEats/api/order_api.py" || true
+          make similar VIDEO=salmon-prep-1 | tee /tmp/similar.txt
+          grep -q '"video_path": "salmon-prep-3.mp4"' /tmp/similar.txt
+      - name: Use your own data (file checks)
+        run: uv run --frozen pytest -q tests/test_own_data.py
+      - name: Try this 1 to 3
+        run: |
+          set -o pipefail
+          make try-frame-sampling | tee /tmp/t1.txt
+          grep -qE "^ +12 .* 0 of 7 +0 of 7" /tmp/t1.txt
+          make try-feature-scaling | tee /tmp/t2.txt
+          grep -q "raw (as the pipeline does)" /tmp/t2.txt
+          make try-order-validation | tee /tmp/t3.txt
+          grep -qE "^total accepted +8 of 8 +8 of 8 +1 of 8" /tmp/t3.txt
+      - name: API log on failure
+        if: failure()
+        run: tail -50 /tmp/serve.log || true
       - name: Printed install path (pip install -r requirements.txt), whole pipeline
         run: |
           uv venv --seed --python ${{ matrix.python-version }} /tmp/pipenv
           /tmp/pipenv/bin/python -m pip install -q -r requirements.txt
           /tmp/pipenv/bin/python ByteEats/run_pipeline.py
           cat qa_results/ORD1001_quality_report.json
+      - name: Printed root script (python image_quality_checker.py ORD1001 "Salmon Poke Bowl")
+        run: /tmp/pipenv/bin/python image_quality_checker.py ORD1001 "Salmon Poke Bowl"
+
+  devcontainer:
+    # Builds .devcontainer/ the way Codespaces does and runs the playbook inside it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the devcontainer and run the playbook
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          # The first output command, timed, as a reader would see it in a new Codespace
+          runCmd: start=$(date +%s) && make run && echo "Time to first output in a clean devcontainer was $(( $(date +%s) - start )) s"
