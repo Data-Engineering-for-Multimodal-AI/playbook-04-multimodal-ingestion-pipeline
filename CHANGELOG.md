@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased (v1.1.0)
+
+Nothing the book shows has changed.
+
+### Added
+- `make setup`, `make run` and `make serve`. `make run` runs the whole pipeline on the bundled
+  ByteEats data (the same as `make pipeline`); `make serve` starts the Order API on port 8000.
+  `make smoke`, `make pipeline` and `make clean` are unchanged.
+- `.devcontainer/` so the repo opens in GitHub Codespaces with dependencies installed.
+- CI: a weekly scheduled run, a `make run` step, a step that runs a root script the book prints,
+  and a job that builds the devcontainer and runs `make run` inside it.
+
 ## 2026.10.1 (2026-10-27)
 
 ### Changed

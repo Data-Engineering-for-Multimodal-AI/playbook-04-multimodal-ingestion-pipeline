@@ -1,4 +1,22 @@
-.PHONY: smoke pipeline clean
+.PHONY: setup run serve smoke pipeline clean
+
+# Uniform targets for The Playbooks. The book's commands still work as printed: the root scripts
+# (python byteats_order_api.py, python robot_trigger_service.py,
+# python image_quality_checker.py ORD1001 "Salmon Poke Bowl" and the others), and
+# python ByteEats/run_pipeline.py for the whole pipeline.
+
+# Install the locked dependencies into .venv.
+setup:
+	uv sync --frozen
+
+# Run the whole pipeline on the bundled ByteEats sample data and print a summary of each step.
+# Same as `make pipeline`. It starts and stops the Order API itself.
+run: setup
+	@$(MAKE) --no-print-directory pipeline
+
+# Start the Order API on http://localhost:8000 (README step 1). Runs until Ctrl-C.
+serve: setup
+	uv run --frozen python ByteEats/api/order_api.py
 
 # Sample data, the API, every step and run_pipeline.py. CPU only, no network.
 smoke:
