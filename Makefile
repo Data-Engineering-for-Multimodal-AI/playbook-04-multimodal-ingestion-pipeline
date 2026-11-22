@@ -1,5 +1,8 @@
 .PHONY: setup run serve smoke pipeline clean
 
+# A bare `make` runs the smoke test, as it did before the uniform targets were added.
+.DEFAULT_GOAL := smoke
+
 # Uniform targets for The Playbooks. The book's commands still work as printed: the root scripts
 # (python byteats_order_api.py, python robot_trigger_service.py,
 # python image_quality_checker.py ORD1001 "Salmon Poke Bowl" and the others), and
