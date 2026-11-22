@@ -658,6 +658,8 @@ For a production deployment, consider:
 - **The robot or notification service never returns**: add `--once`, or press Ctrl-C.
 - **`No features file found for order ORD1001`**: run the extractor (step 4) first, from the same folder.
 
+If this playbook helped you, a star helps other readers find it.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details. The sample videos and images in `ByteEats/data/` are MIT-licensed too.
