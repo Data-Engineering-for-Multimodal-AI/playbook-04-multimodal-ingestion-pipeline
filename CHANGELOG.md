@@ -5,6 +5,16 @@
 Nothing the book shows has changed.
 
 ### Added
+- `make order ITEM=...` sends one order to the running Order API and reads it back (`scripts/send_order.py`);
+  `make similar VIDEO=...` lists the sample videos most like one video.
+- `make check-data DIR=...` and `make load DIR=...`: check a folder with your own order and videos, then run
+  feature extraction, the quality check and the embeddings on it (`scripts/own_order.py`, `tests/test_own_data.py`).
+- Three measured experiments: `make try-frame-sampling`, `make try-feature-scaling`, `make try-order-validation`
+  (`experiments/`).
+- README: numbered Run it steps, time tiers, Try this, Use your own data, What you end up with, Before production,
+  What it costs.
+- CI: runs the Run it steps with checks on their output, the three experiments and the own-data tests; the
+  devcontainer job prints the time to first output.
 - `make setup`, `make run` and `make serve`. `make run` runs the whole pipeline on the bundled
   ByteEats data (the same as `make pipeline`); `make serve` starts the Order API on port 8000.
   `make smoke`, `make pipeline` and `make clean` are unchanged.
@@ -13,6 +23,8 @@ Nothing the book shows has changed.
   and a job that builds the devcontainer and runs `make run` inside it.
 
 ### Changed
+- README: "What you'll build" is now "How it works", without the paragraph the opening repeats. "Quick start" is
+  now "Run it the way the book does", with the same steps.
 - README opening: a title that says what you'll do, three sentences on why, the example and what you'll do, then the data engineering problem and what you'll work with.
 - Book page numbers now match the printed book (they were Early Release page numbers).
 

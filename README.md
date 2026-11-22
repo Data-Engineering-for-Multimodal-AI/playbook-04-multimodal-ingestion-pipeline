@@ -9,11 +9,259 @@ Kitchen sensor readings, customer reviews and food photos arrive at different sp
 
 Bonus content (not printed in the book): [playbook-04-bonus-multimodal-vector-similarity](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity).
 
-> Want the code exactly as printed? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the printed book](#differences-from-the-printed-book).
+> Following the book? Its steps are in [Run it the way the book does](#run-it-the-way-the-book-does) and still work as printed. Want the code exactly as printed? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the printed book](#differences-from-the-printed-book).
 
-## What you'll build
+## Run it
 
-ByteEats is an end-to-end ELT (Extract, Load, Transform) pipeline for automated food preparation. The system processes videos of food preparation, extracts meaningful features, generates vector embeddings for similarity search and anomaly detection, and provides quality assurance through image comparison.
+You need [uv](https://docs.astral.sh/uv/) and `make`. No Docker, no GPU, no API keys. Or open the repo in a GitHub Codespace, where both are ready. On Windows without `make`, use a Codespace or the book's steps below.
+
+**1. Get the code.** The clone is about 45 MB, including the seven sample videos.
+
+```bash
+git clone https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline.git
+cd playbook-04-multimodal-ingestion-pipeline
+```
+
+**2. Run the whole pipeline.** Installs the locked dependencies (`uv sync`) and runs every step on the sample order (`python ByteEats/run_pipeline.py`): it starts the Order API, sends the sample order, runs the robot trigger, extracts features from the seven videos, sends the pickup notification, runs the quality check, builds the embeddings and runs the similarity search. On a Mac this took 41 s with the dependencies already downloaded.
+
+```bash
+make run
+```
+
+You should see, among the output of each step:
+
+```
+Order ORD1001 is ready for pickup!
+Quality check for order ORD1001: FAILED
+Overall score: 16.13%
+Generated 7 embeddings for order ORD1001
+Successfully completed 7/7 steps.
+```
+
+The quality check fails on purpose: the last packaging frame is a side view and the reference is a top-down photo (see [Expected output](#expected-output)). The outputs are in `orders/`, `processed_orders/`, `robot_logs/`, `video_features_enhanced/`, `qa_results/`, `video_embeddings/` and `similarity_results/`.
+
+**3. Send your own order.** Starts the Order API on port 8000 (`python ByteEats/api/order_api.py`). Leave it running.
+
+```bash
+make serve
+```
+
+In a second terminal, send an order and read it back. This is a `POST /api/orders`, then a `GET /api/orders/<order_id>`:
+
+```bash
+make order ITEM="Miso Salmon Bowl"
+```
+
+```
+POST /api/orders -> HTTP 200 {"order_id":"ORD6213","status":"received","message":"Order received successfully"}
+GET /api/orders/ORD6213 -> {"restaurant_id": "PH001", ..., "menu_item": "Miso Salmon Bowl", ..., "order_status": "received"}
+```
+
+The order ID is random. Now hand the order to the robot (step 2 of the book):
+
+```bash
+uv run python ByteEats/services/robot_trigger.py --once
+```
+
+```
+robot-trigger - INFO - Processing order ORD6213
+robot-trigger - INFO -   → Robot action: initialize_robot (0.5s)
+robot-trigger - INFO -   → Robot action: grab_scoop (1.0s)
+...
+robot-trigger - INFO - Order ORD6213 processed and moved to processed_orders/ORD6213.json
+```
+
+A "Miso Salmon Bowl" gets the generic bowl sequence; only a salmon poke bowl gets the salmon-cutting steps. Change `ITEM=` and look at `robot_logs/`. The interactive API docs are at http://localhost:8000/docs. Stop the API with Ctrl+C.
+
+**4. Find similar videos.** Ranks the sample videos by cosine similarity of their embeddings to one video (`python ByteEats/analysis/embedding_generator.py similar`). Needs step 2's output.
+
+```bash
+make similar VIDEO=salmon-prep-1
+```
+
+```
+    "video_path": "salmon-prep-3.mp4",
+    "similarity": 0.9804775890573619
+    "video_path": "salmon-prep-4.mp4",
+    "similarity": 0.9770871652902404
+    "video_path": "salmon-prep-2.mp4",
+    "similarity": 0.8890608745642891
+```
+
+The three closest are the other prep videos. `VIDEO=` takes any name in `ByteEats/data/sample-videos/` without `.mp4`. [Try this 2](#try-this) shows why these scores are all so high.
+
+**5. Clean up.**
+
+```bash
+make clean
+```
+
+This deletes the folders the pipeline writes (`orders/`, `processed_orders/`, `robot_logs/`, `video_features*/`, `notification_logs/`, `qa_results/`, `video_embeddings/`, `embedding_models/`, `similarity_results/`). The sample data and `.venv/` stay.
+
+## How much time do you have?
+
+| Time | What to do |
+|---|---|
+| 15 minutes | [Run it](#run-it), steps 1 to 4. On a Mac, step 2 took 41 s. |
+| 1 hour | The three [Try this](#try-this) experiments (about a minute together on a Mac), then open `qa_results/ORD1001_comparison.jpg` and `video_embeddings/ORD1001_embeddings_viz.png` to see what the quality check and the embeddings compared. |
+| 1 day | [Use your own data](#use-your-own-data): run the pipeline on your own order and videos, then work through [Before production](#before-production). |
+
+## Try this
+
+Each experiment changes one thing and measures the effect. None of them needs Docker or a network. The numbers below are from a Mac on 2026-11-21; times vary with the machine and its load.
+
+**1. How many frames should ingestion sample per video?** The extractor samples 12 evenly spaced frames from each 8-second clip, and infers robot actions from motion thresholds. This runs the same code with 4 to 24 frames.
+
+```bash
+make try-frame-sampling
+```
+
+```
+frames    time  average motion  ingredients differ  actions differ
+     4    3.2s          30.30%            0 of 7        0 of 7
+     8    7.8s          24.57%            0 of 7        1 of 7
+    12   12.8s          21.10%            0 of 7        0 of 7
+    24   25.9s          15.14%            0 of 7        3 of 7
+```
+
+Time grows with the number of frames, because each frame is a seek in the video. Motion is measured between consecutive sampled frames, so more frames mean smaller gaps and lower motion. The thresholds were set for 12 frames: at 24, `delivery-packaging-7` loses `complete_packaging`, and the notification service would then report the order as not ready. Change `FRAME_COUNTS` in `experiments/frame_sampling.py`, or make the motion thresholds depend on the time between frames.
+
+**2. Does scaling the features change which videos look alike?** Each video's vector mixes color and motion percentages (0 to 100) with 0/1 flags for the stage and the ingredients, and the pipeline compares the raw values. This compares them raw and standardized (each feature to mean 0, standard deviation 1). Needs step 2's output.
+
+```bash
+make try-feature-scaling
+```
+
+```
+features                      lowest  highest  pairs above 0.8
+raw (as the pipeline does)     0.159    0.980         9 of 21
+standardized                  -0.682    0.789         0 of 21
+
+video                    nearest, raw             nearest, standardized
+salmon-prep-2            salmon-bowl-assembly-5   salmon-prep-3
+...
+Largest raw features (mean over videos): container blue % 31.5, motion max % 31.1, motion mean % 21.1; ...
+```
+
+Raw, the large percentages decide the similarity, and 9 of the 21 pairs clear the anomaly threshold of 0.8. Standardized, `salmon-prep-2`'s nearest video is another prep video instead of the assembly video. The anomaly check's 0.8 threshold only means something for one scaling; `StandardScaler` is created in `embedding_generator.py` but never used.
+
+**3. Which bad orders get through the Order API?** Sends one good and seven bad orders to `POST /api/orders` and hands each saved order to the robot trigger, then checks the same requests against a stricter schema defined in the experiment. It runs in a temporary folder.
+
+```bash
+make try-order-validation
+```
+
+```
+request                         API (as is)  robot prepared  stricter schema
+good order                         accepted             yes         accepted
+quantity 0                         accepted             yes         rejected
+quantity -2                        accepted             yes         rejected
+no items                           accepted             yes         rejected
+blank menu item                    accepted             yes         rejected
+dish not on the menu               accepted             yes         rejected
+5,000-character instructions       accepted             yes         rejected
+quantity as text                   accepted             yes         rejected
+
+total accepted                       8 of 8          8 of 8           1 of 8
+```
+
+The API checks only that the fields exist and have roughly the right types, so every bad order reaches the robot. The stricter schema (`StrictOrderInput`) adds a minimum and maximum quantity, at least one item, a fixed menu and a length limit. Move those checks into `OrderInput` in `ByteEats/api/order_api.py` and the API answers HTTP 422 instead.
+
+## Use your own data
+
+Put one order in a folder:
+
+```
+my_order/
+  order.json          the order as you would POST it to /api/orders, plus "order_id"
+  videos/             .mp4 clips of the order being made. The file name says the stage:
+                      salmon-prep-<n>, assembly, quality-check, packaging or delivery
+  reference_images/   optional: a photo of the finished dish, named after the menu item
+                      (miso_salmon_bowl.jpg for "Miso Salmon Bowl"); .jpg, .jpeg or .png
+```
+
+```json
+{"order_id": "ORD2001", "restaurant_id": "PH001", "restaurant_name": "Sample Poke Bar",
+ "menu_item": "Miso Salmon Bowl", "items": [{"name": "Salmon", "quantity": 1}],
+ "order_placed_at": "2026-11-21T12:30:00"}
+```
+
+Without `reference_images/`, the quality check looks in `ByteEats/data/reference_images/`, which has only the salmon poke bowl. Check the folder first. This reads every file and writes nothing:
+
+```bash
+make check-data DIR=my_order
+```
+
+It reports every problem with the file and the reason, and stops if there is any. On a test folder with deliberately bad files:
+
+```
+9 problem(s) in bad_order; nothing was written:
+  order.json: restaurant_id: Field required
+  order.json: order_id: needs 1-40 letters, digits, - or _ (it becomes a file name)
+  order.json: items.0.quantity: must be 1 or more, got 0
+  order.json: order_placed_at: not an ISO 8601 time: 'yesterday noon'
+  videos/kitchen-cam.mp4: the name doesn't say the stage (salmon-prep-<n>, assembly, quality-check, packaging or delivery)
+  videos/quality-check.mp4: not an MP4 video (no MP4 header)
+  videos/salmon-prep-3.mp4: a Git LFS pointer, not a video (run git lfs pull)
+  videos/salmon-prep-4.mov: not an .mp4 file (the extractor reads only .mp4)
+  reference_images/salmon_poke_bowl.jpg: can't open as an image
+```
+
+It also checks for an empty file, a video with fewer than two readable frames or no frame rate, an image smaller than 32x32, a missing menu item, an empty item list, the sample order's ID `ORD1001`, and that there is a packaging or assembly clip for the quality check. When everything passes, run the pipeline on it:
+
+```bash
+make load DIR=my_order
+```
+
+This extracts the features into `video_features_enhanced/<order_id>/`, runs the quality check against your reference image, builds the embeddings, and compares each video with the same stage in the other orders in `video_embeddings/` (the sample order, after `make run`). On a test folder built from four sample clips, one of them an assembly clip renamed `salmon-prep-2.mp4` (10 s on a Mac):
+
+```
+my_order: order ORD2001 (Miso Salmon Bowl), 4 videos (assembly, packaging, prep), reference image from my_order/reference_images/. All checks passed.
+Extracted features from 4 videos into video_features_enhanced/ORD2001/ (log: video_features_enhanced/ORD2001/extract.log)
+Quality check: FAILED, overall score 15.66% (pass mark 70%), report qa_results/ORD2001_quality_report.json
+Compared with the same stage in 1 other order(s) (embedding_generator.py anomalies, threshold 0.8):
+  bowl-assembly.mp4            assembly  similarity 1.000  ok
+  delivery-packaging.mp4       packaging similarity 1.000  ok
+  salmon-prep-1.mp4            prep      similarity 0.907  ok
+  salmon-prep-2.mp4            prep      similarity 0.843  ok
+```
+
+The mislabeled clip scores 0.843 against the real prep videos and passes the anomaly check: with raw features, almost everything is above 0.8 ([Try this 2](#try-this)). `make clean` deletes these outputs too.
+
+## What you end up with
+
+A pipeline that takes an order through an API, a robot service, video feature extraction, a quality check and vector embeddings, and runs on your own orders and videos after checking them.
+
+Skills you'll practice:
+- Ingesting an order stream through an API and batch video files from a folder
+- Sampling frames from video and turning them into numeric features
+- Validating orders and media files before they enter the pipeline
+- Comparing images and videos with similarity scores, and reading what the scores mean
+- Scaling features before you compare them
+- Measuring how a sampling or schema choice changes the results
+
+## Before production
+
+This playbook runs on one machine with sample data. Before you run something like it for real:
+
+1. **Validate orders where they enter.** `OrderInput` accepts a quantity of 0 or -2, an empty item list and dishes the kitchen doesn't make; all 8 test orders reached the robot ([Try this 3](#try-this)). Reject them at the API with HTTP 422. *Chapter 4, "What Happens When Validation Fails" (page 120).*
+2. **Replace folder polling with a queue.** The robot trigger polls `orders/` every 2 seconds and the notification service every 5, and an order is "taken" by renaming its file. Two workers can pick the same order, and a failure leaves no retry. *Chapter 2, "Streaming Ingestion" (page 48); Chapter 8, "Streaming and Batch Ingestion" (page 282).*
+3. **Tie thresholds to time, not to a frame count.** The robot actions come from motion thresholds that only hold for 12 sampled frames; at 24 frames, the packaging video loses `complete_packaging` ([Try this 1](#try-this)). *Chapter 4, "Balancing Cost, Latency, and Fidelity" (page 118).*
+4. **Scale features before comparing them.** The embeddings are raw features padded with zeros to 128 values, and 9 of 21 video pairs score above the 0.8 anomaly threshold. An assembly clip filed as a prep clip scored 0.843 and was not flagged ([Use your own data](#use-your-own-data)). *Chapter 5, "Feature-Engineering Core Techniques" (page 143).*
+5. **Don't take the stage from the file name.** `identify_video_type` reads the stage from words in the file name, so a misnamed clip is processed as the wrong stage. Carry the stage and the order ID as metadata from the robot that recorded the clip. *Chapter 4, "Annotation: Where Multimodal Systems Mature or Collapse" (page 123).*
+6. **Keep each order's outputs apart.** The extractor writes frames to `video_features_enhanced/<video name>/`, so a second order with the same video names overwrites the first order's frames, which its quality report still points to. `make load` writes to a folder per order for this reason. *Chapter 4, "Observability: Tracing Signals Through the Pipeline" (page 122).*
+7. **Compare like with like in the quality check.** The reference is a top-down photo and the packaging frame a side view, so the sample order scores 16.13% and fails, and so would every order. Take the reference with the same camera, or check the dish with a model. *Chapter 4, "Validation, Transformation, Observability, and Annotation Across Modalities" (page 119).*
+8. **Store vectors in a vector database.** Embeddings are a pickle file per order, and `similar` and `anomalies` open every file on each call. *Chapter 6, "Vector Databases" (page 180).*
+9. **Lock down the API.** It listens on all interfaces with no authentication, and `GET /api/orders/{order_id}` returns customer IDs and instructions to anyone. *Chapter 11, "Protecting Data Across the Pipeline" (page 421).*
+
+## What it costs
+
+| Where you run it | Cost |
+|---|---|
+| Your machine | $0. Everything runs locally: no API keys, no paid services. The environment is about 415 MB. |
+| A GitHub Codespace (2 cores, 8 GB, the default size; this repo asks for no larger one) | Estimated $0.18 per hour at GitHub's list price (November 2026). A free personal account includes 120 core-hours a month, about 60 hours on this machine. |
+
+## How it works
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
@@ -42,7 +290,9 @@ The pipeline has six stages, plus a pickup notification once the order is packag
 
 Everything runs on a laptop CPU with the bundled sample data: no cloud account, no GPU, no network after installation.
 
-## Quick start
+## Run it the way the book does
+
+These are the book's steps (pages 125–133), as printed apart from the fixes listed in [Differences from the printed book](#differences-from-the-printed-book). [Run it](#run-it) above runs the same pipeline with `make`.
 
 You need Python 3.12 or newer and about 450 MB of disk space for the environment.
 
@@ -166,6 +416,8 @@ make smoke    # or: uv run pytest -q
 ```
 
 `make smoke` (about a minute on a laptop CPU) checks the sample data, the Order API, each step's output and exit code, the root wrappers, and `run_pipeline.py` end to end. GitHub Actions runs it on Python 3.12 and 3.13, plus the printed `pip install -r requirements.txt` path with `run_pipeline.py`.
+
+`uv run pytest -q tests/test_own_data.py` checks the file checks behind `make check-data` (a few seconds). `make order`, `make similar`, `make check-data` and `make load`: see [Run it](#run-it) and [Use your own data](#use-your-own-data).
 
 ## Tested on
 
@@ -354,7 +606,13 @@ Check the output directories for generated files and visualizations.
 │   └── run_pipeline.py               # Runs every step
 ├── advanced_video_extractor.py       # Optional TensorFlow object detection (untested)
 ├── *.py                              # Script names printed in the book; each runs its ByteEats/ module
-├── tests/test_smoke.py               # make smoke
+├── scripts/
+│   ├── send_order.py                 # make order: POST an order to the running API and read it back
+│   └── own_order.py                  # make check-data, make load: your own order and videos
+├── experiments/                      # make try-*: the three Try this experiments
+├── tests/
+│   ├── test_smoke.py                 # make smoke
+│   └── test_own_data.py              # checks for make check-data and make load
 ├── Makefile
 ├── pyproject.toml, uv.lock           # Dependencies (uv)
 ├── requirements.txt                  # Pinned, exported from uv.lock
