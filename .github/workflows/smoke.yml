@@ -26,7 +26,7 @@ jobs:
       - name: Run it, step 2 (make run)
         run: |
           set -o pipefail
-          make run | tee /tmp/run.txt
+          make run 2>&1 | tee /tmp/run.txt
           grep -q "Successfully completed 7/7 steps." /tmp/run.txt
           grep -q "Order ORD1001 is ready for pickup!" /tmp/run.txt
       - name: Run it, steps 3 and 4 (make serve, make order, robot trigger, make similar)
