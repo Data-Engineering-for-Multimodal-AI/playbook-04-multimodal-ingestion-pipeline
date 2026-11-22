@@ -1,8 +1,13 @@
-# ByteEats Core Ops Pipeline
+# Playbook 04: Ingest kitchen sensors, reviews and photos in one pipeline
+**How to combine streaming and batch ingestion for multimodal data.** Chapter 4 of [*Data Engineering for Multimodal AI*](https://oreil.ly/data-engineering-multimodal) (O'Reilly, 2026), pages 125–133.
 
-**Chapter 4 playbook** from *Data Engineering for Multimodal AI* (O'Reilly, 2026), pages 125–133.
+Kitchen sensor readings, customer reviews and food photos arrive at different speeds and in different shapes, and the kitchen has to act on all of them. In this repo, we explore this with ByteEats, a fictional cloud kitchen. Follow along to stream the sensor data, batch the reviews and images, and combine them so anomalies and bad dishes get flagged.
+
+**The problem.** Multimodal data doesn't arrive together: sensor readings stream in every second, while reviews and photos come in batches, each with its own format.
+
+**What you'll work with.** You'll weigh streaming against batch and ETL against ELT, ingest each modality in the way that suits it, validate data at the boundaries, and combine it once it lands.
+
 Bonus content (not printed in the book): [playbook-04-bonus-multimodal-vector-similarity](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity).
-Book: https://oreil.ly/data-engineering-multimodal
 
 > Want the code exactly as printed? Use the `first-edition` tag. This branch is the 2026 maintenance update; see [Differences from the printed book](#differences-from-the-printed-book).
 
