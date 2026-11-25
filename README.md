@@ -1,5 +1,15 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/header-dark.png">
+  <img src="docs/img/header-light.png" alt="Playbook 04 of 12, Chapter 4 of Data Engineering for Multimodal AI. Build: a streaming and batch ingestion pipeline. Data: orders, prep videos and photos." width="100%">
+</picture>
+
 # Playbook 04: Ingest kitchen sensors, reviews and photos in one pipeline
 **How to combine streaming and batch ingestion for multimodal data.** Chapter 4 of [*Data Engineering for Multimodal AI*](https://oreil.ly/data-engineering-multimodal) (O'Reilly, 2026), pages 125–133.
+
+[![Tests](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline/actions/workflows/smoke.yml/badge.svg?branch=main)](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline/actions/workflows/smoke.yml)
+![Python 3.12 | 3.13](https://img.shields.io/badge/python-3.12%20%7C%203.13-1f1a19?labelColor=6b6361)
+[![License: MIT](https://img.shields.io/badge/license-MIT-1f1a19?labelColor=6b6361)](LICENSE)
+[![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-b4422e?logo=github&labelColor=6b6361)](https://codespaces.new/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline?quickstart=1)
 
 Kitchen sensor readings, customer reviews and food photos arrive at different speeds and in different shapes, and the kitchen has to act on all of them. In this repo, we explore this with ByteEats, a fictional cloud kitchen. Follow along to stream the sensor data, batch the reviews and images, and combine them so anomalies and bad dishes get flagged.
 
@@ -263,6 +273,19 @@ This playbook runs on one machine with sample data. Before you run something lik
 
 ## How it works
 
+```mermaid
+flowchart LR
+  A["Order API<br/>FastAPI, orders saved as JSON"] --> B["Robot trigger<br/>timestamped prep log"]
+  B --> C["Video features<br/>OpenCV, 7 prep videos"]
+  C --> D["Pickup notification<br/>order ready"]
+  C --> E["Quality check<br/>MSE, SSIM, histograms, ORB"]
+  C --> F["Embeddings<br/>similar videos, anomalies"]
+  R["Reference image<br/>salmon poke bowl"] --> E
+  R --> G["Similarity search<br/>bowl photos vs reference"]
+  classDef key fill:#ffe8e3,stroke:#b4422e,color:#1f1a19
+  class C key
+```
+
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Order     │    │   Robot     │    │   Video     │    │   Quality   │
@@ -467,7 +490,7 @@ Details are in [CHANGELOG.md](CHANGELOG.md).
 
 None of it shows a real restaurant, kitchen, robot or person. [ByteEats/data/README.md](ByteEats/data/README.md) lists every file and what uses it.
 
-The full list, with sources, licenses and citations, is in [DATA_LICENSES.md](DATA_LICENSES.md).
+The full list, with sources, licenses and citations, is in [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Expected output
 
@@ -671,3 +694,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - OpenCV for computer vision capabilities
 - scikit-learn for machine learning utilities
 - FastAPI for the API framework
+
+---
+
+[The book](https://oreil.ly/data-engineering-multimodal) · [All playbooks](https://github.com/Data-Engineering-for-Multimodal-AI#playbooks) · Previous: [Playbook 03](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-03-multimodal-context-platform) · Next: [Playbook 04 bonus](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-bonus-multimodal-vector-similarity)
+<!-- Substack post for this playbook: add link here -->
