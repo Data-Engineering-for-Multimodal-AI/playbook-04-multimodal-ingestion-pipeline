@@ -16,6 +16,7 @@ setup:
 # Same as `make pipeline`. It starts and stops the Order API itself.
 run: setup
 	@$(MAKE) --no-print-directory pipeline
+	@echo "playbook-04-multimodal-ingestion-pipeline" > .playbook-done
 
 # Start the Order API on http://localhost:8000 (README step 1). Runs until Ctrl-C.
 serve: setup
