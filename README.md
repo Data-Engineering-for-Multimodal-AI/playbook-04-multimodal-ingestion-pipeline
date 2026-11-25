@@ -3,7 +3,7 @@
   <img src="docs/img/header-light.png" alt="Playbook 04 of 12, Chapter 4 of Data Engineering for Multimodal AI. Build: a streaming and batch ingestion pipeline. Data: orders, prep videos and photos." width="100%">
 </picture>
 
-# Playbook 04: Ingest kitchen sensors, reviews and photos in one pipeline
+# Playbook 04: Ingest orders, kitchen videos and food photos in one pipeline
 **How to combine streaming and batch ingestion for multimodal data.** Chapter 4 of [*Data Engineering for Multimodal AI*](https://oreil.ly/data-engineering-multimodal) (O'Reilly, 2026), pages 125–133.
 
 [![Tests](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline/actions/workflows/smoke.yml/badge.svg?branch=main)](https://github.com/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline/actions/workflows/smoke.yml)
@@ -11,9 +11,9 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-1f1a19?labelColor=6b6361)](LICENSE)
 [![Open in GitHub Codespaces](https://img.shields.io/badge/Open%20in-Codespaces-b4422e?logo=github&labelColor=6b6361)](https://codespaces.new/Data-Engineering-for-Multimodal-AI/playbook-04-multimodal-ingestion-pipeline?quickstart=1)
 
-Kitchen sensor readings, customer reviews and food photos arrive at different speeds and in different shapes, and the kitchen has to act on all of them. In this repo, we explore this with ByteEats, a fictional cloud kitchen. Follow along to stream the sensor data, batch the reviews and images, and combine them so anomalies and bad dishes get flagged.
+Orders, kitchen prep videos and food photos arrive at different speeds and in different shapes, and the kitchen has to act on all of them. In this repo, we explore this with ByteEats, a fictional cloud kitchen. Follow along to take orders through an API, extract features from the prep videos, check dish photos against a reference, and combine the results so problems get flagged.
 
-**The problem.** Multimodal data doesn't arrive together: sensor readings stream in every second, while reviews and photos come in batches, each with its own format.
+**The problem.** Multimodal data doesn't arrive together: orders come in one at a time, while videos and photos are large files that arrive in batches, each with its own format.
 
 **What you'll work with.** You'll weigh streaming against batch and ETL against ELT, ingest each modality in the way that suits it, validate data at the boundaries, and combine it once it lands.
 
